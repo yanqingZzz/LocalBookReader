@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#3F51B5</color>
+    <!--<color name="colorPrimaryDark">#303F9F</color>-->
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="grey">#C9C9C9</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="book_image_color">#F0F0F0</color>
+
+    <color name="catalog_item_selected_color">#D81E06</color>
+    <color name="catalog_item_unselected_color">#707070</color>
+
+    <color name="cyan_blue_bg_color">#2c374b</color>
+    <color name="dark_blue_text_color">#B7BBC7</color>
+
+    <color name="brown_bg_color">#5c4a34</color>
+    <color name="dark_brown_text_color">#CDBD9E</color>
+
+    <color name="green_bg_color">#384a3a</color>
+    <color name="dark_green_text_color">#D0CDC6</color>
+
+    <color name="grey_900_bg_color">#70787b</color>
+    <color name="dark_gray_text_color">#2D3537</color>
+
+    <color name="read_function_bg_color">#333333</color>
+</resources>

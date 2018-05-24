@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="book_read_view_default_text_size">18sp</dimen>
+    <dimen name="book_read_view_default_title_size">14sp</dimen>
+    <dimen name="book_read_view_default_line_space">10dp</dimen>
+    <dimen name="book_read_normal_view_shadow_width">15dp</dimen>
+    <dimen name="book_read_view_default_title_padding">5dp</dimen>
+    <dimen name="book_read_view_default_content_padding">5dp</dimen>
+
+    <dimen name="text_13_size">13sp</dimen>
+    <dimen name="text_15_size">15sp</dimen>
+    <dimen name="text_16_size">16sp</dimen>
+    <dimen name="text_19_size">19sp</dimen>
+    <dimen name="text_22_size">22sp</dimen>
+    <dimen name="text_25_size">25sp</dimen>
+    <dimen name="text_28_size">28sp</dimen>
+</resources>
