@@ -22,8 +22,8 @@
         <activity android:name=".activity.FileBrowserActivity" />
         <activity
             android:name=".activity.ReadActivity"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
-        <activity android:name=".activity.CatalogActivity"></activity>
+            android:theme="@style/ReadTheme" />
+        <activity android:name=".activity.CatalogActivity"/>
     </application>
 
 </manifest>

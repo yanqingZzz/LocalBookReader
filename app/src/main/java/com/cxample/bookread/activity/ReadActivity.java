@@ -2,9 +2,13 @@ package com.cxample.bookread.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -53,10 +57,20 @@ public class ReadActivity extends Activity implements OnReadViewListener {
 
     private boolean mLightFollowSystem;
 
+    private void hideStatusBar() {
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+    }
+
+    private void showStatusBar() {
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_read);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        hideStatusBar();
 
         Intent intent = getIntent();
         if(intent == null) {
@@ -356,6 +370,7 @@ public class ReadActivity extends Activity implements OnReadViewListener {
     }
 
     private void showFunction() {
+        showStatusBar();
         mTitleFunctionLayout.setVisibility(View.VISIBLE);
         mBottomFunctionLayout.setVisibility(View.VISIBLE);
         mTitleFunctionLayout.startAnimation(mAnimationTopIn);
@@ -369,6 +384,7 @@ public class ReadActivity extends Activity implements OnReadViewListener {
     }
 
     private void hideFunction() {
+        hideStatusBar();
         mTitleFunctionLayout.startAnimation(mAnimationTopOut);
         mBottomFunctionLayout.startAnimation(mAnimationBottomOut);
         if(mSettingFunctionLayout.getVisibility() == View.VISIBLE) {
