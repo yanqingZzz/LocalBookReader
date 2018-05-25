@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">阅读</string>
+    <string name="dummy_content">Welcome</string>
 </resources>

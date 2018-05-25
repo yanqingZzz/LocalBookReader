@@ -3,12 +3,9 @@ package com.cxample.bookread.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -95,7 +92,7 @@ public class ReadActivity extends Activity implements OnReadViewListener {
         mBookReadView.openBook(mBook);
 
         initState();
-        initScreenLight();
+        updateScreenLight();
         initTextSize();
     }
 
@@ -116,13 +113,11 @@ public class ReadActivity extends Activity implements OnReadViewListener {
         updateNightModeStats(SharePreferenceUtils.getIsNightMode(this));
     }
 
-    public void initScreenLight() {
-        int light;
+    public void updateScreenLight() {
         mLightFollowSystem = SharePreferenceUtils.getFollowSystemLight(ReadActivity.this);
-        if(mLightFollowSystem) {
-            light = Utils.getSystemBrightness(ReadActivity.this);
-        } else {
-            light = SharePreferenceUtils.getScreenLight(ReadActivity.this);
+        int light = SharePreferenceUtils.getScreenLight(ReadActivity.this);
+
+        if(!mLightFollowSystem) {
             if(light == -1) {
                 light = Utils.getSystemBrightness(ReadActivity.this);
                 SharePreferenceUtils.saveScreenLight(ReadActivity.this, light);
@@ -228,18 +223,23 @@ public class ReadActivity extends Activity implements OnReadViewListener {
     private SeekBar.OnSeekBarChangeListener mLightSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            if(progress <= 0) {
-                progress = 1;
-            } else if(progress > 255) {
-                progress = 255;
-            }
-            Utils.changeAppBrightness(ReadActivity.this, progress);
-            if(!mLightFollowSystem) {
+            int light;
+            if(mLightFollowSystem) {
+                light = -1;
+                mLightFollowSystem = false;
+            } else {
+                if(progress <= 0) {
+                    light = 1;
+                } else if(progress > 255) {
+                    light = 255;
+                } else {
+                    light = progress;
+                }
                 SharePreferenceUtils.setFollowSystemLight(ReadActivity.this, false);
-                SharePreferenceUtils.saveScreenLight(ReadActivity.this, progress);
+                SharePreferenceUtils.saveScreenLight(ReadActivity.this, light);
                 mSystemLightView.setSelected(false);
             }
-            mLightFollowSystem = false;
+            Utils.changeAppBrightness(ReadActivity.this, light);
         }
 
         @Override
@@ -282,7 +282,7 @@ public class ReadActivity extends Activity implements OnReadViewListener {
             } else {
                 SharePreferenceUtils.setFollowSystemLight(ReadActivity.this, true);
             }
-            initScreenLight();
+            updateScreenLight();
         }
     };
 
