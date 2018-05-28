@@ -3,6 +3,7 @@ package com.cxample.bookread.adapter;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import com.cxample.bookread.viewholder.BookViewHolder;
 import com.cxample.bookread.viewholder.EmptyViewHolder;
 import com.cxample.bookread.viewholder.LoadingViewHolder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,14 +29,20 @@ public class BookListAdapter extends RecyclerView.Adapter<AbsViewHolder> {
     public final static int STATUS_ADD = 1;
 
     private View.OnClickListener mItemClickListener;
+    private View.OnLongClickListener mItemLongClickListener;
     private View.OnClickListener mAddClickListener;
+
+    private SparseBooleanArray mBooleanArray;
 
     private List<Book> mBooks;
 
     private Context mContext;
 
+    private boolean isSelectMode = false;
+
     public BookListAdapter(Context context) {
         mContext = context;
+        mBooleanArray = new SparseBooleanArray();
     }
 
     public void setBooks(List<Book> books) {
@@ -44,6 +52,10 @@ public class BookListAdapter extends RecyclerView.Adapter<AbsViewHolder> {
 
     public void setItemClickListener(View.OnClickListener itemClickListener) {
         mItemClickListener = itemClickListener;
+    }
+
+    public void setItemLongClickListener(View.OnLongClickListener itemLongClickListener) {
+        mItemLongClickListener = itemLongClickListener;
     }
 
     public void setAddClickListener(View.OnClickListener addClickListener) {
@@ -77,7 +89,15 @@ public class BookListAdapter extends RecyclerView.Adapter<AbsViewHolder> {
                 viewHolder.mNameView.setText(book.name);
                 viewHolder.mEpisodeView.setText(book.episode + "/" + book.episode_count);
                 viewHolder.itemView.setTag(book);
-                viewHolder.itemView.setOnClickListener(mItemClickListener);
+                viewHolder.itemView.setOnLongClickListener(mItemLongClickListener);
+                if(isSelectMode) {
+                    viewHolder.mSelectStatusView.setVisibility(View.VISIBLE);
+                    viewHolder.mSelectStatusView.setSelected(getItemSelected(book.id));
+                    viewHolder.itemView.setOnClickListener(mItemSelectedClickListener);
+                } else {
+                    viewHolder.mSelectStatusView.setVisibility(View.GONE);
+                    viewHolder.itemView.setOnClickListener(mItemClickListener);
+                }
                 break;
             }
             case STATUS_ADD: {
@@ -96,5 +116,58 @@ public class BookListAdapter extends RecyclerView.Adapter<AbsViewHolder> {
     @Override
     public int getItemCount() {
         return mBooks == null ? 1 : mBooks.size() + 1;
+    }
+
+    private View.OnClickListener mItemSelectedClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Book book = (Book)v.getTag();
+            boolean isSelected = getItemSelected(book.id);
+            setItemSelected(book.id, !isSelected);
+            notifyDataSetChanged();
+        }
+    };
+
+    private void setItemSelected(int id, boolean selected) {
+        if(mBooleanArray == null) mBooleanArray = new SparseBooleanArray();
+        mBooleanArray.put(id, selected);
+    }
+
+    private boolean getItemSelected(int id) {
+        if(mBooleanArray == null) return false;
+        return mBooleanArray.get(id, false);
+    }
+
+    public void selectAll(boolean isSelected) {
+        if(mBooks != null) {
+            for(Book book : mBooks) {
+                setItemSelected(book.id, isSelected);
+            }
+            notifyDataSetChanged();
+        }
+    }
+
+    public ArrayList<Book> getAllSelected() {
+        ArrayList<Book> selectedBooks = new ArrayList<>();
+        if(mBooks != null) {
+            for(Book book : mBooks) {
+                if(getItemSelected(book.id)) {
+                    selectedBooks.add(book);
+                }
+            }
+        }
+        return selectedBooks;
+    }
+
+    public void showSelectMode(int id) {
+        setItemSelected(id, true);
+        isSelectMode = true;
+        notifyDataSetChanged();
+    }
+
+    public void hideSelectMode() {
+        selectAll(false);
+        isSelectMode = false;
+        notifyDataSetChanged();
     }
 }

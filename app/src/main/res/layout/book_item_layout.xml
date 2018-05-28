@@ -51,4 +51,16 @@
         android:maxLines="1"
         android:text="0/1000"
         android:textSize="13sp" />
+
+    <ImageView
+        android:id="@+id/item_select_status"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_alignRight="@+id/icon"
+        android:layout_alignTop="@+id/icon"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="15dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/book_item_selector"
+        android:visibility="gone" />
 </RelativeLayout>

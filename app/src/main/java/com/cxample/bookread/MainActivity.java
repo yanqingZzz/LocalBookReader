@@ -20,8 +20,12 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.cxample.bookread.activity.FileBrowserActivity;
 import com.cxample.bookread.activity.ReadActivity;
@@ -29,8 +33,10 @@ import com.cxample.bookread.adapter.BookListAdapter;
 import com.cxample.bookread.constant.BoradcastAction;
 import com.cxample.bookread.db.Book;
 import com.cxample.bookread.db.BookDataBase;
+import com.cxample.bookread.db.EpisodeDataBase;
 import com.cxample.bookread.utils.LoadLocalBookUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,6 +47,10 @@ public class MainActivity extends AppCompatActivity {
     private AppBarLayout mAppBarLayout;
     private CollapsingToolbarLayout mCollapsingToolbarLayout;
     private Toolbar mToolbar;
+    private LinearLayout mBottomFunction;
+    private TextView mSelectAll;
+    private TextView mCancel;
+    private TextView mDelete;
     private RelativeLayout mRecordLayout;
     private TextView mBookTitleView;
     private TextView mBookAuthorView;
@@ -48,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView mBookNoRecordView;
     private RecyclerView mRecyclerView;
     private BookListAdapter mAdapter;
+
+    private boolean isShowBottomFunction = false;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -66,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
         setTitle("");
         initToolbar();
         initView();
+        initBottomFunction();
         getBookInfo();
     }
 
@@ -110,11 +123,56 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         mAdapter = new BookListAdapter(this);
         mAdapter.setItemClickListener(mItemClickListener);
+        mAdapter.setItemLongClickListener(mItemLongClickListener);
         mAdapter.setAddClickListener(mAddClickListener);
         mRecyclerView.setAdapter(mAdapter);
 
         mCollapsingToolbarLayout.setCollapsedTitleTextColor(Color.WHITE);
         mAppBarLayout.addOnOffsetChangedListener(mOffsetChangedListener);
+    }
+
+    private void initBottomFunction() {
+        mBottomFunction = findViewById(R.id.bottom_function);
+        mSelectAll = findViewById(R.id.select_all);
+        mCancel = findViewById(R.id.cancel);
+        mDelete = findViewById(R.id.delete);
+        mSelectAll.setSelected(true);
+        mSelectAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mSelectAll.isSelected()) {
+                    mSelectAll.setSelected(false);
+                    mSelectAll.setText("取消全选");
+                    mAdapter.selectAll(true);
+                } else {
+                    mSelectAll.setSelected(true);
+                    mSelectAll.setText("全选");
+                    mAdapter.selectAll(false);
+                }
+            }
+        });
+        mCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideBottomFunction();
+            }
+        });
+        mDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ArrayList<Book> list = mAdapter.getAllSelected();
+                if(list != null && list.size() > 0) {
+                    for(Book book : list) {
+                        EpisodeDataBase.getInstance(MainActivity.this).episodeDao().deleteByBookId(book.id);
+                        BookDataBase.getInstance(MainActivity.this).bookDao().deleteById(book.id);
+                    }
+                    hideBottomFunction();
+                    getBookInfo();
+                } else {
+                    Toast.makeText(MainActivity.this, "请选中要删除的小说", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private boolean mIsTitleShow = false;
@@ -173,10 +231,20 @@ public class MainActivity extends AppCompatActivity {
     private View.OnClickListener mItemClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            if(isShowBottomFunction) return;
             Book book = (Book)v.getTag();
             Intent intent = new Intent(MainActivity.this, ReadActivity.class);
             intent.putExtra("id", book.id);
             startActivity(intent);
+        }
+    };
+
+    private View.OnLongClickListener mItemLongClickListener = new View.OnLongClickListener() {
+        @Override
+        public boolean onLongClick(View v) {
+            Book book = (Book)v.getTag();
+            showBottomFunction(book.id);
+            return true;
         }
     };
 
@@ -188,6 +256,47 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private Animation mAnimationBottomIn;
+    private Animation mAnimationBottomOut;
+
+    private void showBottomFunction(int id) {
+        isShowBottomFunction = true;
+        if(mAnimationBottomIn == null) {
+            mAnimationBottomIn = AnimationUtils.loadAnimation(MainActivity.this, R.anim.bottom_in);
+        }
+        mBottomFunction.setVisibility(View.VISIBLE);
+        mBottomFunction.startAnimation(mAnimationBottomIn);
+
+        mAdapter.showSelectMode(id);
+    }
+
+    private void hideBottomFunction() {
+        isShowBottomFunction = false;
+        if(mAnimationBottomOut == null) {
+            mAnimationBottomOut = AnimationUtils.loadAnimation(MainActivity.this, R.anim.bottom_out);
+            mAnimationBottomOut.setAnimationListener(mAnimationListener);
+        }
+        mBottomFunction.startAnimation(mAnimationBottomOut);
+
+        mAdapter.hideSelectMode();
+    }
+
+    private Animation.AnimationListener mAnimationListener = new Animation.AnimationListener() {
+        @Override
+        public void onAnimationStart(Animation animation) {
+
+        }
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            mBottomFunction.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+
+        }
+    };
 
     private static final int REQUEST_CODE_FILE_BROWSER = 100;
     private static final int REQUEST_CODE_READ = 101;
@@ -233,7 +342,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if(keyCode == KeyEvent.KEYCODE_BACK) {
-            showExitDialog();
+            if(isShowBottomFunction) {
+                hideBottomFunction();
+            } else {
+                showExitDialog();
+            }
             return true;
         }
         return super.onKeyDown(keyCode, event);
